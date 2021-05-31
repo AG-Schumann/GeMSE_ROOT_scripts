@@ -39,7 +39,7 @@ double getNumber(std::string a) {
 int make_spectrum(TString FileName, TF1* calibration=0) {
     
     // open ascii file
-    ifstream File;
+    std::ifstream File;
     
     File.open(FileName);
     
@@ -567,7 +567,7 @@ TF1* FitSqrt(TGraphErrors* graph, double a_st, double b_st, double c_st) {
 int read_listfile(TString FileName, TF1* calibration=0) {
     
     // open list file
-    ifstream File;
+    std::ifstream File;
     
     File.open(FileName);
     

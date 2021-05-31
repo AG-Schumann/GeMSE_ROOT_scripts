@@ -32,7 +32,7 @@ int read_parameters(TString FileName) {
     double energy, BR_G4, BR_NuDat, width_sig, width_bck;
     int flag;
     
-    ifstream File;
+    std::ifstream File;
     File.open(FileName);
     
     if (!File.is_open()) {

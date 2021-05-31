@@ -18,7 +18,7 @@ int read_parameters(TString FileName) {
     
     double fitrange_low, fitrange_high, amp_st, mean_st, sigma_st, const_st, slope_st;
     
-    ifstream File;
+    std::ifstream File;
     File.open(FileName);
     
     if (!File.is_open()) {
