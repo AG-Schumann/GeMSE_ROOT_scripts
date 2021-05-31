@@ -58,34 +58,6 @@ calibrates a **spectrum txt file** with a calibration function
     * TVectorD "t_real": real time
 
 
-simulated_efficiency
-======
-Analyzes the efficiencies simulated with the Geant4 code "GeMSE_efficiency_simulation".
-
-Requires a **paramters txt file** (see "example_parameters_efficiency_simulation.txt") with the following content:
-* input folder: folder with the output files of the Geant4 simulation
-
-For every gamma line
-* isotope name: name of the isotope, has to correspond to the simulation filename 
-* energy (keV): energy of the peak 
-* G4 BR: emission probability of the gammas in Geant4. When gammas are directly simulated instead of full decay put 1.
-* NuDat BR: emission probability of the gammas taken from NuDat (http://www.nndc.bnl.gov/nudat2/chartNuc.jsp)
-* width signal region (keV): width of region to sum up signal counts
-* width bkg region (keV): width of region to sum up bkg counts
-* flag: 1 when the gamma line is directly simulated. 0 if full decay is simulated
-
-## Usage 
-```
-./simulated_efficiency <parameters_simulated_efficiency.txt>
-```
-## Output
-* simulated_efficiencies.root 
-    * TTree "tree"
-        * TBranch "energy": energy in keV
-        * TBranch "eff_BR": product of detection efficiency and branching ratio
-* folder "/spectra": spectra of all simulated gamma lines as ROOT and pdf files
-
-
 energy_resolution
 ======
 Fits the peaks in a **calibrated** spectrum with Gauss+Pol1. The peaks' standard deviation vs energy is then fitted with a function sqrt(p0+p1*x+p2*x^2) to get the energy resolution as function of energy.

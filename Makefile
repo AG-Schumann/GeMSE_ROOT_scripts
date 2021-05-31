@@ -31,7 +31,7 @@ LIBS := `bat-config --libs`
 # Add classes to the end. Backslash indicates continuation
 # on the next line
 CXXSRCS_all      = \
-	calibrate_spectrum.cxx energy_calibration.cxx energy_resolution.cxx make_rootfile_list.cxx make_rootfile_spectrum.cxx make_spectrum_list.cxx plot_rate.cxx simulated_efficiency.cxx add_spectra.cxx integral_rate.cxx merge_simulated_efficiencies.cxx
+	calibrate_spectrum.cxx energy_calibration.cxx energy_resolution.cxx make_rootfile_list.cxx make_rootfile_spectrum.cxx make_spectrum_list.cxx plot_rate.cxx add_spectra.cxx integral_rate.cxx merge_simulated_efficiencies.cxx
 
 CXXSRCS1      = \
         calibrate_spectrum.cxx 
@@ -48,12 +48,10 @@ CXXSRCS6      = \
 CXXSRCS7      = \
 	plot_rate.cxx
 CXXSRCS8      = \
-	simulated_efficiency.cxx
-CXXSRCS9      = \
 	add_spectra.cxx
-CXXSRCS10      = \
+CXXSRCS9      = \
 	integral_rate.cxx
-CXXSRCS11      = \
+CXXSRCS10      = \
 	merge_simulated_efficiencies.cxx
 # ----------------------------------------------------------------------
 # don't change lines below unless you know what you're doing
@@ -70,10 +68,9 @@ CXXOBJS7      = $(patsubst %.cxx,%.o,$(CXXSRCS7))
 CXXOBJS8      = $(patsubst %.cxx,%.o,$(CXXSRCS8))
 CXXOBJS9      = $(patsubst %.cxx,%.o,$(CXXSRCS9))
 CXXOBJS10      = $(patsubst %.cxx,%.o,$(CXXSRCS10))
-CXXOBJS11      = $(patsubst %.cxx,%.o,$(CXXSRCS11))
 
 MYPROGS_all     = \
-	calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate simulated_efficiency add_spectra integral_rate merge_simulated_efficiencies
+	calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies
 
 MYPROGS1     = \
         calibrate_spectrum
@@ -89,19 +86,17 @@ MYPROGS6     = \
 	make_spectrum_list
 MYPROGS7     = \
 	plot_rate
-MYPROGS8     = \
-	simulated_efficiency
 MYPROGS9     = \
 	add_spectra
-MYPROGS10     = \
+MYPROGS9     = \
 	integral_rate
-MYPROGS11     = \
+MYPROGS10     = \
 	merge_simulated_efficiencies
 
 GARBAGE = $(CXXOBJS_all) *~ link.d $(MYPROGS_all)
 
 # targets
-all : calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate simulated_efficiency add_spectra integral_rate merge_simulated_efficiencies
+all : calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies
 
 link.d : $(patsubst %.cxx,%.h,$(CXXSRCS_all))
 	$(CXX) -MM $(CXXFLAGS) $(CXXSRCS_all) > link.d;
@@ -135,23 +130,18 @@ make_spectrum_list : $(CXXOBJS6)
 plot_rate : $(CXXOBJS7)
 	$(CXX) $(LDFLAGS) $(CXXOBJS7) $(LIBS) -o $@
 
-simulated_efficiency : $(CXXOBJS8)
+add_spectra : $(CXXOBJS8)
 	$(CXX) $(LDFLAGS) $(CXXOBJS8) $(LIBS) -o $@
 
-add_spectra : $(CXXOBJS9)
+integral_rate : $(CXXOBJS9)
 	$(CXX) $(LDFLAGS) $(CXXOBJS9) $(LIBS) -o $@
 
-integral_rate : $(CXXOBJS10)
+merge_simulated_efficiencies : $(CXXOBJS10)
 	$(CXX) $(LDFLAGS) $(CXXOBJS10) $(LIBS) -o $@
-
-merge_simulated_efficiencies : $(CXXOBJS11)
-	$(CXX) $(LDFLAGS) $(CXXOBJS11) $(LIBS) -o $@
 print :
 	@echo compiler  : $(CXX)
 	@echo c++ srcs  : $(CXXSRCS_all)
 	@echo c++ objs  : $(CXXOBJS_all)
 	@echo c++ flags : $(CXXFLAGS)
 	@echo libs      : $(LIBS)
-
-
 
