@@ -967,9 +967,3 @@ int rate_from_list(TString FileName, double binwidth, double range_min, double r
     return 0;
 }
 
-
-
-
-
-
-
