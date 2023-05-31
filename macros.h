@@ -34,6 +34,101 @@ double getNumber(std::string a) {
 }
 
 // ----------------------------------------------------
+// make 'normal' ROOT file from CoMPASS ROOT tree (incl. optional calibration)
+// ----------------------------------------------------
+// int convert_compass_tree(TString FileName, TF1* calibration=0) {
+//     
+//     // open CoMPASS ROOT file
+//     TFile* File = TFile::Open(FileName);
+//  
+//     if (!File) {
+//         std::cout << "###### ERROR: could not open " << FileName << std::endl;
+//         return 0;
+//     }
+//     
+//     double t_live, t_real;
+//     // std::string t_live_string, t_real_string;
+//     
+//     const int Nchannels=16382;
+//     double channel[Nchannels+1];
+//     int counts[Nchannels];
+//     
+//     // read real and live time
+//     //File >> t_real_string >> t_live_string;
+//     
+//     // remove commas and convert to double
+//     //t_real = getNumber(t_real_string);
+//     //t_live = getNumber(t_live_string);
+//     //
+//     // TODO: read t_real and t_live from CoMPASS:    
+//     
+//     // read counts for every channel
+//     for (int i=0; i<Nchannels; i++) {
+//         File >> counts[i];
+//         
+//         // apply energy calibration
+//         if (calibration!=0) {
+//             channel[i]=calibration->Eval(i+0.5);
+//         }
+//         else {
+//             channel[i]=i+0.5;
+//         }
+//     }
+//     if (calibration!=0) {
+//         channel[Nchannels]=calibration->Eval(Nchannels+0.5);
+//     }
+//     else {
+//         channel[Nchannels]=Nchannels+0.5;
+//     }
+// 
+//     
+//     File.close();
+//     
+//     // create root file
+//     if (calibration!=0) {
+//         FileName += "_calibrated";
+//     }
+//     
+//     TFile* histFile = TFile::Open(FileName+".root","RECREATE");
+//     
+//     // make histogram
+//     TH1D* hist = new TH1D("hist",";ADC Channel;Counts",Nchannels,channel);
+//     
+//     if (calibration!=0) {
+//         hist->GetXaxis()->SetTitle("Energy (keV)");
+//     }
+//     
+//     for (int i=0; i<Nchannels; i++) {
+//         
+//         hist->SetBinContent(i+1,counts[i]);
+//         
+//     }
+//     
+//     // draw histogram
+//     TCanvas* c1 = new TCanvas("c1");
+//     gStyle->SetOptStat(0);
+//     c1->SetLogy();
+//     hist->Draw();
+//     c1->SaveAs(FileName+".pdf");
+//     
+//     
+//     // save histogram to root file
+//     hist->Write();
+//     TVectorD v_live(1);
+//     TVectorD v_real(1);
+//     v_live[0] = t_live;
+//     v_real[0] = t_real;
+//     v_live.Write("t_live");
+//     v_real.Write("t_real");
+//     
+//     histFile->Close();
+//     
+//     return 0;
+//     
+//     
+// }
+
+// ----------------------------------------------------
 // make root file from ascii spectrum
 // ----------------------------------------------------
 int make_spectrum(TString FileName, TF1* calibration=0) {
@@ -176,6 +271,38 @@ double getreal(TString FileName) {
         std::cout << "###### ERROR: no real time in file " << FileName << std::endl;
         return 0;
     }
+
+    
+    TVectorD* v_real = (TVectorD*) File->Get("t_real");
+    double t_real = ((*v_real)[0]);
+    
+    File->Close();
+    
+    return t_real;
+    
+}
+
+// ----------------------------------------------------
+// get real time from CoMPASS ROOT tree
+// ----------------------------------------------------
+double getrealCompass(TString FileName) {
+    
+    // check for root file
+    TFile* File = TFile::Open(FileName);
+    
+    if (!File) {
+        
+        std::cout << "###### ERROR: could not open " << FileName << std::endl;
+        return 0;
+    }
+    
+//    if (!File->GetListOfKeys()->Contains("t_real")) {
+//        std::cout << "###### ERROR: no real time in file " << FileName << std::endl;
+//        return 0;
+//    }
+//
+//    Does CoMPASS store this information separately somewhere? Maybe in HCompassR ...RealTime_0?
+//    Alternatively, take difference between first and last timestamp? (biased; especially for low rates)
 
     
     TVectorD* v_real = (TVectorD*) File->Get("t_real");
@@ -343,11 +470,12 @@ TF1* FitGauss(TH1D* hist, double amp_st, double mean_st, double sigma_st, double
         std::cout << "#### 'fitFunction' already defined, deleting ..." << std::endl;
         delete func;
     }
-    TF1* fitFunction = new TF1("fitFunction", "[0]/([2]*sqrt(2*3.14159265))*exp(-(x-[1])*(x-[1])/(2*[2]*[2]))");
+    //TF1* fitFunction = new TF1("fitFunction", "[0]/([2]*sqrt(2*3.14159265))*exp(-(x-[1])*(x-[1])/(2*[2]*[2]))");
+    //fitFunction->SetParName(0,"amplitude");
+    //fitFunction->SetParName(1,"mean");
+    //fitFunction->SetParName(2,"sigma");
     
-    fitFunction->SetParName(0,"amplitude");
-    fitFunction->SetParName(1,"mean");
-    fitFunction->SetParName(2,"sigma");
+    TF1* fitFunction = new TF1("fitFunction", "gaus");
     
     fitFunction->SetRange(range_min,range_max);
     
@@ -362,6 +490,9 @@ TF1* FitGauss(TH1D* hist, double amp_st, double mean_st, double sigma_st, double
     // fit signal
     hist->Fit(fitFunction,"0RMEL");
     
+    fitFunction = hist->GetFunction("fitFunction"); 
+    fitFunction->SetLineColor(1);
+    fitFunction->SetLineStyle(2);
     fitFunction->DrawCopy("LSAME");
     
     TString status=gMinuit->fCstatu.Data();
@@ -387,7 +518,8 @@ TF1* FitGaussPol1(TH1D* hist, double amp_st, double mean_st, double sigma_st, do
         std::cout << "#### 'fitFunction' already defined, deleting ..." << std::endl;
         delete func;
     }
-    TF1* fitFunction = new TF1("fitFunction", "[0]/([2]*sqrt(2*3.14159265))*exp(-(x-[1])*(x-[1])/(2*[2]*[2]))+pol1(3)");
+    //TF1* fitFunction = new TF1("fitFunction", "[0]/([2]*sqrt(2*3.14159265))*exp(-(x-[1])*(x-[1])/(2*[2]*[2]))+pol1(3)");
+    TF1* fitFunction = new TF1("fitFunction", "gaus+pol1(3)");
 
     
     fitFunction->SetParName(0,"amplitude");
@@ -407,16 +539,20 @@ TF1* FitGaussPol1(TH1D* hist, double amp_st, double mean_st, double sigma_st, do
     //fitFunction->SetParLimits(0,0.,1000.*amp_st);
     //fitFunction->SetParLimits(1,range_min,range_max);
     //fitFunction->SetParLimits(2,0.,1000.*sigma_st);
+    //fitFunction->SetParLimits(3,0.,0.5*amp_st);
     
     // fit signal
     hist->Fit(fitFunction,"0RMEL");
+    //hist->Fit(fitFunction,"0REL");
+    //hist->Fit(fitFunction);
     
     fitFunction->DrawCopy("LSAME");
     
     TString status=gMinuit->fCstatu.Data();
     
-    if (status!="SUCCESSFUL") {
+    if (((status!="SUCCESSFUL")&&(status!="CONVERGED"))&&(status!="PROBLEMS  ")) {
         std::cout << "###### ERROR: Fit not successful! Try different start parameters!" << std::endl;
+        std::cout << "       **** Fit status: --" << status <<"--"<< std::endl;
         return 0;
     }
     
@@ -560,9 +696,96 @@ TF1* FitSqrt(TGraphErrors* graph, double a_st, double b_st, double c_st) {
     return fitFunction;
 }
 
+// ----------------------------------------------------
+// make classic root file from CoMPASS root file
+// ----------------------------------------------------
+int convert_compass_rootfile(TString FileName, TF1* calibration=0) {
+    // open CoMPASS ROOT file
+    TFile* CompassFile = TFile::Open(FileName);
+ 
+    if (!CompassFile) {
+        std::cout << "###### ERROR: could not open " << FileName << std::endl;
+        return 0;
+    }
+
+    // open compass tree:
+    TTree *compasstree;
+    CompassFile->GetObject("Data_R", compasstree);
+    // Deactivate all branches
+    compasstree->SetBranchStatus("*", 0);
+    // Activate relevant branches
+    for (auto activeBranchName : {"Timestamp", "Energy", "Flags"})
+      compasstree->SetBranchStatus(activeBranchName, 1);
+
+
+    // create 'old-style' root file containing trees:
+    TFile* rootFile = new TFile(FileName+".root","recreate");
+    
+    TTree* dataTree = new TTree("dataTree","dataTree");
+//    TTree* headerTree =new TTree("headerTree","headerTree"); // CoMPASS doesn't write the classical header lines. Skip this part
+    
+    long long int time; // time stamp in 10ns unit
+    ULong64_t ctime;       // Compass uses slightly different datatypes. Let's see, if this causes problems...
+    int pulseheight; // 15 bit pulseheight
+    UShort_t cpulseheight;
+    long long int extras; // extra information about saturation, pileup, deadtime, timestamp rollover
+    UInt_t cextras;           
+    double energy;
+
+//    std::string headerline;
+    
+    if (calibration) {
+        dataTree->Branch("energy",&energy);
+        
+        // also save the xbins to a Tree
+        // after calibration histo has variable bin size
+        std::vector<double> xbins;
+        for (int i=0; i<32768; ++i) {
+            xbins.push_back(calibration->Eval(i+0.5));
+        }
+        TTree* binTree = new TTree("binTree","binTree");
+        binTree->Branch("xbins",&xbins);
+        binTree->Fill();
+        binTree->Write();
+    }
+    
+    dataTree->Branch("time",&time);
+    dataTree->Branch("pulseheight",&pulseheight);
+    dataTree->Branch("extras",&extras);
+  
+    // here the mapping between the different trees: 
+    compasstree->SetBranchAddress("Timestamp",&ctime); 
+    compasstree->SetBranchAddress("Energy",&cpulseheight); 
+    compasstree->SetBranchAddress("Flags",&cextras); 
+    // headerTree->Branch("headerline",&headerline);  // CoMPASS doesn't write the classical header lines. Skip this part
+    // now we loop over the compass tree and fill the old-style tree:
+    Long64_t nentries = compasstree->GetEntries();
+    for (Long64_t i=0;i<nentries;i++) {
+        compasstree->GetEntry(i);
+        if (calibration) {
+            energy = calibration->Eval(pulseheight);
+        }
+        // convert datatypse to match old-style root tree
+        time= (long long int) ctime/10000.;
+        pulseheight= (int) cpulseheight;
+        extras = (long long int) cextras;
+        //std::cout << time_raw << "\t" << pulseheight << "\t" << extras << std::endl;
+        dataTree->Fill();
+    }
+    CompassFile->Close();
+    
+    //headerTree->Write();
+    dataTree->Write();
+    
+    rootFile->Close();
+    
+    return 0;
+    
+ 
+}
 
 // ----------------------------------------------------
-// make root file from list file
+// make root file from list file (used by make_rootfile_list.cxx)
 // ----------------------------------------------------
 int read_listfile(TString FileName, TF1* calibration=0) {
     
@@ -655,6 +878,7 @@ int read_listfile(TString FileName, TF1* calibration=0) {
 
 // ----------------------------------------------------
 // make spectrum from list file (FW version >= 128.64 and MC2 version >= 1.0.10)
+//  -- actually it reads a ROOT Tree and produces a TH1D and stores it in a ROOT file
 // ----------------------------------------------------
 
 int spectrum_from_list(TString FileName, TString option="", double t_min=0., double t_max=0.) {
@@ -761,6 +985,9 @@ int spectrum_from_list(TString FileName, TString option="", double t_min=0., dou
             // no fake event (extras < 8 or extras = 16)
             if (extras<8 || extras == 16) {
                 nAll++;
+//            } else { // temporary cout to understand what happens to CoMPASS extras in this computation:
+//                     // does Compass have extras <8 or ==16? I am tempted to ignore/reject all events that have an extra != 0x0. At our rates we dont expect pilups to contribute significantly.
+//                std::cout << "  ... not a 'good' event: extras=" << extras << ", pulseheight=" << pulseheight << std::endl;
             }
             
             // pileup event where pulseheight is corrupted (pulseheight = 0 and extras < 8)
@@ -859,7 +1086,76 @@ int spectrum_from_list(TString FileName, TString option="", double t_min=0., dou
     return 0;
 }
 
+// ----------------------------------------------------
+// print some information from ROOT file
+// ----------------------------------------------------
+int print_info_root_file(TString FileName) {
 
+    // check for root file
+    TFile* File = new TFile(FileName);
+    
+    // check for file
+    if (File->IsZombie()) {
+        std::cout << "##### ERROR: could not open " << FileName << std::endl;
+        return 1;
+    }
+
+    TTree* dataTree = (TTree*) File->Get("dataTree");
+    std::cout << "dataTree extracted from " << FileName << std::endl;
+    std::cout << " --------------------- " << std::endl;
+
+    
+    long long int time;
+    long long int extras;
+    int pulseheight;
+    
+    if( (dataTree->GetListOfBranches()->FindObject("energy")) ) {
+        double energy;
+        dataTree->SetBranchAddress("energy",&energy);
+    }
+    
+    dataTree->SetBranchAddress("pulseheight",&pulseheight);
+    dataTree->SetBranchAddress("time",&time);
+    dataTree->SetBranchAddress("extras",&extras);
+    
+    int nEntries = dataTree->GetEntries();
+    std::cout << "   Total number of entries: " << nEntries << std::endl;
+
+    int nEntriesExtrasLTE1 = dataTree->Draw("pulseheight>>_htemp","extras>=1","goff");
+    int nEntriesExtrasLTE8 = dataTree->Draw("pulseheight>>_htemp","extras>=8","goff");
+    int nEntriesExtrasLTE80 = dataTree->Draw("pulseheight>>_htemp","extras>=80","goff");
+
+    std::cout << "   Number of entries with 'extras>=1': " << nEntriesExtrasLTE1 << std::endl;
+    std::cout << "   Number of entries with 'extras>=8': " << nEntriesExtrasLTE8 << std::endl;
+    std::cout << "   Number of entries with 'extras>=80': " << nEntriesExtrasLTE80 << std::endl;
+    
+    
+    dataTree->GetEntry(0);
+    long long int t0 = time;
+    // dont we always start time counting from zero? I.e., shouldn't t0=0.
+    // if we are off by more than a minute, print a warning:
+    if (t0/1.e8/60 > 1.) {
+        std::cout << "**** ATTENTION: t_0 larger 1 minute! t0 =" << t0/1.e8/60 << " min." << std::endl; 
+    }
+    
+    dataTree->GetEntry(nEntries-1);
+    double t_max = (double) (time-t0)/1.e8;
+
+    std::cout << "   Run duration: " << t_max/3600./24. << " days = " << t_max/3600. << " hours." << std::endl; 
+ 
+    if( (dataTree->GetListOfBranches()->FindObject("energy")) ) {
+        double max_enrg;
+        max_enrg = dataTree->GetMaximum("energy");
+        std::cout << "   Largest energy: " << max_enrg << std::endl; 
+    }
+    double max_ph;
+    max_ph = dataTree->GetMaximum("pulseheight");
+    std::cout << "   Largest pulseheight: " << max_ph << std::endl; 
+    std::cout << " --------------------- " << std::endl;
+
+ 
+    return 0;
+}
 
 // ----------------------------------------------------
 // make rate plot from list file
@@ -966,4 +1262,10 @@ int rate_from_list(TString FileName, double binwidth, double range_min, double r
     
     return 0;
 }
+
+
+
+
+
+
 

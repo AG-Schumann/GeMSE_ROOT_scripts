@@ -107,7 +107,8 @@ int main(int argc, char *argv[]) {
         // fit peak with Gauss+Pol1
         std::cout << "###################################################" << std::endl;
         std::cout << "Fitting line " << i+1 << " in range " << ffitrange_low[i] << " - " << ffitrange_high[i] << std::endl;
-        fit = FitGaussPol1(hist,famp_st[i],fmean_st[i], fsigma_st[i], fconst_st[i], fslope_st[i], ffitrange_low[i], ffitrange_high[i]);
+        // fit = FitGaussPol1(hist,famp_st[i],fmean_st[i], fsigma_st[i], fconst_st[i], fslope_st[i], ffitrange_low[i], ffitrange_high[i]);
+        fit = FitGauss(hist,famp_st[i],fmean_st[i], fsigma_st[i], ffitrange_low[i], ffitrange_high[i]);
         if (fit==0) {
             return 1;
         }
