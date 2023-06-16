@@ -98,17 +98,30 @@ echo ${calibrated_spectrum}
 
 if [ ${combine_spectra} -eq 1 ]; then
     GaLcomb='combined_spectra'
-    calspecs=$(ls -rt ${GaFolder}/*spectrum_calibrated*.root)
+    _calspecs=(${GaFolder}/*spectrum_calibrated*.root)
+    calspecstring=""
+    # we want to make sure that only the selected files (GaLFiles) are merged. Not all files that, e.g. in a previous step, were processed 
+    for _cs in "${_calspecs[@]}"; do
+        # Iterate over each string in the string_to_check array
+        for _run in "${GaLFiles[@]}"; do
+            # Check if the _run is present in *spectrum_calibrated*.root files
+            if [[ "$_cs" == *"$_run"* ]]; then
+                calspecstring+=" $_cs"
+                break  # Break the inner loop if a match is found
+            fi
+        done
+    done
 
-    echo "I will now merge the following files containing spectra: "
-    echo ${calspecs}
+    #echo "I will now merge the following files containing spectra: "
+    #echo ${calspecstring}
 
-    singularity exec ${container_image} ${pROOT}/add_spectra ${calspecs} ${GaFolder}/${GaLcomb}
+    singularity exec ${container_image} ${pROOT}/add_spectra ${calspecstring} ${GaFolder}/${GaLcomb}
     if [ ${do_annotation} -eq 1 ]; then
-      singularity exec ${container_image} python ${annotate_script} --ifile=${GaFolder}/${GaLcomb}.root --ofile=${GaFolder}/${GaLcomb}_annotated_spectrum.pdf
+      singularity exec ${container_image} python /home/sebastian/Computing/GeMSE/python_analysis/annotate_calibrated_histogram_uproot.py --ifile=${GaFolder}/${GaLcomb}.root --ofile=${GaFolder}/${GaLcomb}_annotated_spectrum.pdf
     fi
 else
     echo "No combination of data."
+
 fi
 
 cd $cdir
