@@ -1,6 +1,9 @@
 #include <TChain.h>
 #include <TString.h>
 #include <TCanvas.h>
+#include <TGraphErrors.h>
+#include <TFile.h>
+#include <TH1F.h>
 
 #include <iostream>
 
@@ -23,7 +26,7 @@ int main(int argc, char *argv[]) {
     
     // create TChain for all trees
     TChain* chain = new TChain("tree");
-    
+   
     // loop over all files
     for (int i=0; i<argc-2; ++i) {
         
@@ -37,10 +40,13 @@ int main(int argc, char *argv[]) {
 
     // plot efficiencies
     TCanvas* c = new TCanvas("c");
-    chain->Draw("efficiency:energy","","*");
+    // chain->Draw("efficiency:energy","","*");
+    // 
+    chain->Draw("energy:efficiency:efficiency_err","","goff");
+    TGraphErrors * g = new TGraphErrors (chain->GetEntries(),chain->GetV1(),chain->GetV2(),0,chain->GetV3());
+    g->Draw("ap");
     c->SaveAs(FileName_out+".pdf");
-    
-    
+
 }
 
 

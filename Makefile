@@ -31,10 +31,10 @@ LIBS := `bat-config --libs`
 # Add classes to the end. Backslash indicates continuation
 # on the next line
 CXXSRCS_all      = \
-	calibrate_spectrum.cxx energy_calibration.cxx energy_resolution.cxx make_rootfile_list.cxx make_rootfile_spectrum.cxx make_spectrum_list.cxx plot_rate.cxx add_spectra.cxx integral_rate.cxx merge_simulated_efficiencies.cxx get_times_from_rootfile.cxx get_efficiencies_from_rootfile.cxx make_rootfile_from_compass_rootfile.cxx print_informations_root_tree.cxx energy_calibration_manual.cxx energy_resolution_manual.cxx energy_resolution_prefit.cxx
+	calibrate_spectrum.cxx energy_calibration.cxx energy_resolution.cxx make_rootfile_list.cxx make_rootfile_spectrum.cxx make_spectrum_list.cxx plot_rate.cxx add_spectra.cxx integral_rate.cxx merge_simulated_efficiencies.cxx merge_simulated_efficiencies_adjustTl208BR.cxx get_times_from_rootfile.cxx get_efficiencies_from_rootfile.cxx make_rootfile_from_compass_rootfile.cxx print_informations_root_tree.cxx energy_calibration_manual.cxx energy_resolution_manual.cxx energy_resolution_prefit.cxx merge_simulated_efficiencies_solid_angle_estimate.cxx
 
 CXXSRCS1      = \
-        calibrate_spectrum.cxx 
+    calibrate_spectrum.cxx 
 CXXSRCS2      = \
 	energy_calibration.cxx
 CXXSRCS3      = \
@@ -55,8 +55,8 @@ CXXSRCS10      = \
 	merge_simulated_efficiencies.cxx
 CXXSRCS11      = \
 	get_times_from_rootfile.cxx
-#CXXSRCS12      = \
-#	BCMTF_HPGe.cxx
+CXXSRCS12      = \
+	merge_simulated_efficiencies_solid_angle_estimate.cxx
 CXXSRCS13      = \
 	energy_resolution_prefit.cxx
 CXXSRCS14      = \
@@ -71,6 +71,8 @@ CXXSRCS18      = \
     energy_calibration_manual.cxx
 CXXSRCS19      = \
     energy_resolution_manual.cxx
+CXXSRCS20      = \
+	merge_simulated_efficiencies_adjustTl208BR.cxx
 
 # ----------------------------------------------------------------------
 # don't change lines below unless you know what you're doing
@@ -88,7 +90,7 @@ CXXOBJS8      = $(patsubst %.cxx,%.o,$(CXXSRCS8))
 CXXOBJS9      = $(patsubst %.cxx,%.o,$(CXXSRCS9))
 CXXOBJS10      = $(patsubst %.cxx,%.o,$(CXXSRCS10))
 CXXOBJS11      = $(patsubst %.cxx,%.o,$(CXXSRCS11))
-#CXXOBJS12      = $(patsubst %.cxx,%.o,$(CXXSRCS12))
+CXXOBJS12      = $(patsubst %.cxx,%.o,$(CXXSRCS12))
 CXXOBJS13      = $(patsubst %.cxx,%.o,$(CXXSRCS13))
 CXXOBJS14      = $(patsubst %.cxx,%.o,$(CXXSRCS14))
 CXXOBJS15      = $(patsubst %.cxx,%.o,$(CXXSRCS15))
@@ -96,9 +98,10 @@ CXXOBJS16      = $(patsubst %.cxx,%.o,$(CXXSRCS16))
 CXXOBJS17      = $(patsubst %.cxx,%.o,$(CXXSRCS17))
 CXXOBJS18      = $(patsubst %.cxx,%.o,$(CXXSRCS18))
 CXXOBJS19      = $(patsubst %.cxx,%.o,$(CXXSRCS19))
+CXXOBJS20      = $(patsubst %.cxx,%.o,$(CXXSRCS20))
 
 MYPROGS_all     = \
-	calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies get_times_from_rootfile get_efficiencies_from_rootfile get_calibration_function make_rootfile_from_compass_rootfile print_informations_root_tree energy_calibration_manual energy_resolution_manual energy_resolution_prefit
+	calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies merge_simulated_efficiencies_adjustTl208BR get_times_from_rootfile get_efficiencies_from_rootfile get_calibration_function make_rootfile_from_compass_rootfile print_informations_root_tree energy_calibration_manual energy_resolution_manual energy_resolution_prefit merge_simulated_efficiencies_solid_angle_estimate
 
 MYPROGS1     = \
         calibrate_spectrum
@@ -122,8 +125,8 @@ MYPROGS10     = \
 	merge_simulated_efficiencies
 MYPROGS11     = \
 	get_times_from_rootfile
-#MYPROGS12      = \
-#	BCMTF_HPGe
+MYPROGS12      = \
+	merge_simulated_efficiencies_solid_angle_estimate
 MYPROGS13      = \
 	energy_resolution_prefit
 MYPROGS14      = \
@@ -138,11 +141,14 @@ MYPROGS18      = \
 	energy_calibration_manual
 MYPROGS19      = \
     energy_resolution_manual
+MYPROGS20     = \
+	merge_simulated_efficiencies_adjustTl208BR
+
 
 GARBAGE = $(CXXOBJS_all) *~ link.d $(MYPROGS_all)
 
 # targets
-all : calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies get_times_from_rootfile get_efficiencies_from_rootfile get_calibration_function make_rootfile_from_compass_rootfile print_informations_root_tree energy_calibration_manual energy_resolution_manual energy_resolution_prefit
+all : calibrate_spectrum energy_calibration energy_resolution make_rootfile_list make_rootfile_spectrum make_spectrum_list plot_rate add_spectra integral_rate merge_simulated_efficiencies merge_simulated_efficiencies_adjustTl208BR get_times_from_rootfile get_efficiencies_from_rootfile get_calibration_function make_rootfile_from_compass_rootfile print_informations_root_tree energy_calibration_manual energy_resolution_manual energy_resolution_prefit merge_simulated_efficiencies_solid_angle_estimate
 
 link.d : $(patsubst %.cxx,%.h,$(CXXSRCS_all))
 	$(CXX) -MM $(CXXFLAGS) $(CXXSRCS_all) > link.d;
@@ -188,8 +194,8 @@ merge_simulated_efficiencies : $(CXXOBJS10)
 get_times_from_rootfile : $(CXXOBJS11)
 	$(CXX) $(LDFLAGS) $(CXXOBJS11) $(LIBS) -o $@
 
-# BCMTF_HPGe : $(CXXOBJS12)
-# 	$(CXX) $(LDFLAGS) $(CXXOBJS12) $(LIBS) -o $@
+merge_simulated_efficiencies_solid_angle_estimate : $(CXXOBJS12)
+	$(CXX) $(LDFLAGS) $(CXXOBJS12) $(LIBS) -o $@
 
 energy_resolution_prefit : $(CXXOBJS13)
 	$(CXX) $(LDFLAGS) $(CXXOBJS13) $(LIBS) -o $@
@@ -211,6 +217,9 @@ energy_calibration_manual : $(CXXOBJS18)
 
 energy_resolution_manual : $(CXXOBJS19)
 	$(CXX) $(LDFLAGS) $(CXXOBJS19) $(LIBS) -o $@
+
+merge_simulated_efficiencies_adjustTl208BR : $(CXXOBJS20)
+	$(CXX) $(LDFLAGS) $(CXXOBJS20) $(LIBS) -o $@
 
 print :
 	@echo compiler  : $(CXX)
