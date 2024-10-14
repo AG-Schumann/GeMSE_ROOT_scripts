@@ -39,13 +39,36 @@ int main(int argc, char *argv[]) {
     chain->Merge(FileName_out+".root");
 
     // plot efficiencies
-    TCanvas* c = new TCanvas("c");
+    // TCanvas* c = new TCanvas("c");
     // chain->Draw("efficiency:energy","","*");
     // 
+    //chain->Draw("energy:efficiency:efficiency_err","","goff");
+    //TGraphErrors * g = new TGraphErrors (chain->GetEntries(),chain->GetV1(),chain->GetV2(),0,chain->GetV3());
+    //g->Draw("ap");
+    //c->SaveAs(FileName_out+".pdf");
+    
+
+    // more fun plots (Seb Okt 14, 2024)
+    //    
+    // plot efficiencies
+    TCanvas* c = new TCanvas("c");
     chain->Draw("energy:efficiency:efficiency_err","","goff");
     TGraphErrors * g = new TGraphErrors (chain->GetEntries(),chain->GetV1(),chain->GetV2(),0,chain->GetV3());
     g->Draw("ap");
-    c->SaveAs(FileName_out+".pdf");
+    gPad->Update();
+    g->GetXaxis()->SetTitle("energy [keV]");
+    g->GetYaxis()->SetTitle("efficiency [1]");
+    c->SaveAs(FileName_out+"_eff.pdf");
+    //
+    TCanvas* c2 = new TCanvas("c2");
+    chain->Draw("energy:eff_BR:efficiency_err/efficiency*eff_BR","","goff");
+    TGraphErrors * g2 = new TGraphErrors (chain->GetEntries(),chain->GetV1(),chain->GetV2(),0,chain->GetV3());
+    g2->Draw("ap");
+    gPad->Update();
+    g2->GetXaxis()->SetTitle("energy [keV]");
+    g2->GetYaxis()->SetTitle("eff_BR [1]");
+    c2->SaveAs(FileName_out+"_effBR.pdf");
+
 
 }
 
